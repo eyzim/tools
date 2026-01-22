@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex Converter Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .converter-wrapper {
+            display: flex;
+            gap: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            height: 36px;
+        }
+
+        .label-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 0.95em;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 16px;
+            resize: vertical;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        /* --- Updated Icon Button Styling --- */
+        .copy-btn {
+            background-color: transparent;
+            border: 1px solid transparent;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .copy-btn:hover {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .copy-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .converter-wrapper {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Hex Converter Tool</h1>
+
+        <div class="converter-wrapper">
+            <div class="box">
+                <div class="box-header">
+                    <span class="label">Hexadecimal</span>
+                    <button class="copy-btn" onclick="copyText('hexInput')" title="Copy to clipboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                <textarea id="hexInput" placeholder="Type Hex here..." spellcheck="false"></textarea>
+            </div>
+
+            <div class="box">
+                <div class="box-header">
+                    <div class="label-group">
+                        <span class="label">To:</span>
+                        <select id="modeSelect">
+                            <option value="decimal">Decimal</option>
+                            <option value="ascii">ASCII Text</option>
+                        </select>
+                    </div>
+                    <button class="copy-btn" onclick="copyText('dataInput')" title="Copy to clipboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                <textarea id="dataInput" placeholder="Result will appear here..." spellcheck="false"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const hexInput = document.getElementById('hexInput');
+        const dataInput = document.getElementById('dataInput');
+        const modeSelect = document.getElementById('modeSelect');
+
+        // --- Core Logic ---
+
+        function updateFromHex() {
+            const val = hexInput.value;
+            const mode = modeSelect.value;
+
+            if (!val.trim()) {
+                dataInput.value = '';
+                return;
+            }
+
+            if (mode === 'decimal') {
+                const parts = val.split(/([\s,\n]+)/);
+                const results = parts.map(part => {
+                    if (part.match(/^[\s,\n]+$/)) return part;
+                    if (!part) return '';
+                    const dec = parseInt(part, 16);
+                    return isNaN(dec) ? '?' : dec;
+                });
+                dataInput.value = results.join('');
+            }
+            else if (mode === 'ascii') {
+                const cleanHex = val.replace(/[\s,\n]/g, '');
+                let output = '';
+                for (let i = 0; i < cleanHex.length; i += 2) {
+                    const chunk = cleanHex.substr(i, 2);
+                    if (chunk.length < 2) continue;
+                    const code = parseInt(chunk, 16);
+                    if (!isNaN(code)) output += String.fromCharCode(code);
+                }
+                dataInput.value = output;
+            }
+        }
+
+        function updateFromData() {
+            const val = dataInput.value;
+            const mode = modeSelect.value;
+
+            if (!val) {
+                hexInput.value = '';
+                return;
+            }
+
+            if (mode === 'decimal') {
+                const parts = val.split(/([\s,\n]+)/);
+                const results = parts.map(part => {
+                    if (part.match(/^[\s,\n]+$/)) return part;
+                    if (!part) return '';
+                    const num = parseInt(part, 10);
+                    return isNaN(num) ? '?' : num.toString(16).toUpperCase();
+                });
+                hexInput.value = results.join('');
+            }
+            else if (mode === 'ascii') {
+                let hexOutput = '';
+                for (let i = 0; i < val.length; i++) {
+                    const hex = val.charCodeAt(i).toString(16).toUpperCase();
+                    hexOutput += (hex.length < 2 ? '0' + hex : hex) + ' ';
+                }
+                hexInput.value = hexOutput.trim();
+            }
+        }
+
+        hexInput.addEventListener('input', updateFromHex);
+        dataInput.addEventListener('input', updateFromData);
+        modeSelect.addEventListener('change', function () {
+            updateFromHex();
+            if (this.value === 'decimal') {
+                dataInput.placeholder = "Type Decimal here (e.g. 65 66)";
+            } else {
+                dataInput.placeholder = "Type Text here (e.g. Hello)";
+            }
+        });
+
+        // --- Updated Copy Function with Icon Feedback ---
+        function copyText(elementId) {
+            const el = document.getElementById(elementId);
+            el.select();
+            document.execCommand('copy');
+
+            // Visual Feedback (Swap Icon)
+            const btn = el.previousElementSibling.querySelector('button');
+            const originalHTML = btn.innerHTML;
+
+            // Show Checkmark SVG
+            btn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        `;
+
+            setTimeout(() => btn.innerHTML = originalHTML, 1500);
+        }
+    </script>
+
+</body>
+
+</html>
